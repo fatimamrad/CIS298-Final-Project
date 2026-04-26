@@ -7,7 +7,7 @@ from PyQt6.QtCore import QThread, pyqtSignal, Qt
 from perceptron import Perceptron
 from sharedFunctions import loadData, plotFittingCurves
 
- 
+# worker thread class to train the model without causing the GUI to freeze
 class ModelTrainingWorker(QThread):
     finished = pyqtSignal(dict) 
     logMsg = pyqtSignal(str)
@@ -47,6 +47,8 @@ class ModelTrainingWorker(QThread):
         except Exception as e:
             self.errorMsg.emit(str(e))
 
+
+# display the results
 class ResultsDialog(QDialog):
     def __init__(self, history):
         super().__init__()
@@ -55,6 +57,7 @@ class ResultsDialog(QDialog):
         
         layout = QVBoxLayout(self)
         
+        # Create the Tab Manager
         tabs = QTabWidget()
         
         graphTab = QWidget()
@@ -92,6 +95,8 @@ class ResultsDialog(QDialog):
         self.table.setHorizontalHeaderLabels(["Sample #", "Predicted Label", "Actual Label", "Correct?"])
         self.table.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Stretch)
         
+
+        # populate the results table
         if 'predictions' in history and 'actuals' in history:
             preds = history['predictions']
             actuals = history['actuals']
@@ -102,6 +107,8 @@ class ResultsDialog(QDialog):
                 actual = actuals[i]
                 isCorrect = "Yes" if pred == actual else "No"
                 
+
+                # Create the table cells
                 itemIdx = QTableWidgetItem(str(i))
                 itemPred = QTableWidgetItem(str(pred))
                 itemActual = QTableWidgetItem(str(actual))
@@ -111,7 +118,7 @@ class ResultsDialog(QDialog):
                     itemCorrect.setForeground(QColor("green"))
                 else:
                     itemCorrect.setForeground(QColor("red"))
-                    itemPred.setForeground(QColor("red")) 
+                    itemPred.setForeground(QColor("red")) # Highlight the wrong guess
                     
                 self.table.setItem(i, 0, itemIdx)
                 self.table.setItem(i, 1, itemPred)
@@ -121,6 +128,7 @@ class ResultsDialog(QDialog):
         tableLayout.addWidget(self.table)
         tabs.addTab(tableTab, "Test Data Predictions")
         
+        # Add the tabs to the main window
         layout.addWidget(tabs)
         
         closeBtn = QPushButton("Close")
@@ -129,7 +137,7 @@ class ResultsDialog(QDialog):
 
 
 
-
+# help system
 class HelpDialog(QDialog):
     def __init__(self):
         super().__init__()
@@ -141,7 +149,7 @@ class HelpDialog(QDialog):
         helpText = QTextEdit()
         helpText.setReadOnly(True)
         
-        
+         # we used HTML to format and keep the help window clean and organized
         helpText.setHtml("""
             <h2 style='font-family: Arial;'>How to Use the neural network trainer</h2>
             <p style='font-family: Arial;'>This tool trains a single layer neural network to classify handwritten digits.</p>
@@ -168,7 +176,7 @@ class HelpDialog(QDialog):
         layout.addWidget(closeBtn)
 
 
-
+# main GUI window
 class MLExplorerGUI(QMainWindow):
     def __init__(self):
         super().__init__()
@@ -179,15 +187,15 @@ class MLExplorerGUI(QMainWindow):
         self.setCentralWidget(centralWidget)
         mainLayout = QVBoxLayout(centralWidget)
         
-        
+        # top bar for adjusting parameters
         controlsLayout = QHBoxLayout()
         
-        
+        # learning rate input box
         self.lrLabel = QLabel("Learning Rate:")
         self.lrInput = QLineEdit("0.1")
         self.lrInput.setFixedWidth(60)
         
-        
+        # iterations input box
         self.iterLabel = QLabel("Iterations:")
         self.iterInput = QLineEdit("100")
         self.iterInput.setFixedWidth(60)
@@ -200,18 +208,18 @@ class MLExplorerGUI(QMainWindow):
         
         mainLayout.addLayout(controlsLayout)
         
-        
+        # train button 
         self.trainBtn = QPushButton("Train Perceptron")
         self.trainBtn.clicked.connect(self.startTraining)
         mainLayout.addWidget(self.trainBtn)
         
-        
+        # putput console messages on main GUI
         self.console = QTextEdit()
         self.console.setReadOnly(True)
         self.console.setStyleSheet("background-color: #1e1e1e; color: #d4d4d4; font-family: Consolas, monospace;")
         mainLayout.addWidget(self.console)
         
-        
+        # bottom bar with help button
         bottomLayout = QHBoxLayout()
         self.helpBtn = QPushButton("Help")
         self.helpBtn.clicked.connect(self.openHelp)
@@ -220,7 +228,7 @@ class MLExplorerGUI(QMainWindow):
         
         mainLayout.addLayout(bottomLayout)
         
-        
+        # setup and data loading
         self.updateConsole("Loading datasets... make sure 'optdigits_train.dat' and 'optdigits_test.dat' are in the directory.")
         try:
             self.xTrain, self.yTrain = loadData("optdigits_train.dat")
@@ -279,7 +287,7 @@ class MLExplorerGUI(QMainWindow):
         self.helpWindow.exec()
 
 
-
+# main execution block
 if __name__ == "__main__":
     app = QApplication(sys.argv)
     app.setStyle("Fusion") 
