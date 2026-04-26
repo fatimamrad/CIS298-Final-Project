@@ -46,3 +46,83 @@ class ModelTrainingWorker(QThread):
             
         except Exception as e:
             self.errorMsg.emit(str(e))
+
+class ResultsDialog(QDialog):
+    def __init__(self, history):
+        super().__init__()
+        self.setWindowTitle("Perceptron Training Results")
+        self.resize(850, 600)
+        
+        layout = QVBoxLayout(self)
+        
+        tabs = QTabWidget()
+        
+        graphTab = QWidget()
+        graphLayout = QVBoxLayout(graphTab)
+        
+        scrollArea = QScrollArea()
+        scrollArea.setWidgetResizable(True)
+        scrollContent = QWidget()
+        scrollLayout = QVBoxLayout(scrollContent)
+        
+        miscLabel = QLabel()
+        miscPixmap = QPixmap("graphs/Perceptron_Fitting_Curve_Misclassification.png")
+        if not miscPixmap.isNull():
+            miscLabel.setPixmap(miscPixmap.scaledToWidth(800, Qt.TransformationMode.SmoothTransformation))
+            miscLabel.setAlignment(Qt.AlignmentFlag.AlignCenter)
+            scrollLayout.addWidget(miscLabel)
+        
+        proxyLabel = QLabel()
+        proxyPixmap = QPixmap("graphs/Perceptron_Fitting_Curve_Proxy.png")
+        if not proxyPixmap.isNull():
+            proxyLabel.setPixmap(proxyPixmap.scaledToWidth(800, Qt.TransformationMode.SmoothTransformation))
+            proxyLabel.setAlignment(Qt.AlignmentFlag.AlignCenter)
+            scrollLayout.addWidget(proxyLabel)
+            
+        scrollContent.setLayout(scrollLayout)
+        scrollArea.setWidget(scrollContent)
+        graphLayout.addWidget(scrollArea)
+        tabs.addTab(graphTab, "Fitting Curves")
+        
+        tableTab = QWidget()
+        tableLayout = QVBoxLayout(tableTab)
+        
+        self.table = QTableWidget()
+        self.table.setColumnCount(4)
+        self.table.setHorizontalHeaderLabels(["Sample #", "Predicted Label", "Actual Label", "Correct?"])
+        self.table.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Stretch)
+        
+        if 'predictions' in history and 'actuals' in history:
+            preds = history['predictions']
+            actuals = history['actuals']
+            self.table.setRowCount(len(preds))
+            
+            for i in range(len(preds)):
+                pred = preds[i]
+                actual = actuals[i]
+                isCorrect = "Yes" if pred == actual else "No"
+                
+                itemIdx = QTableWidgetItem(str(i))
+                itemPred = QTableWidgetItem(str(pred))
+                itemActual = QTableWidgetItem(str(actual))
+                itemCorrect = QTableWidgetItem(isCorrect)
+            
+                if isCorrect == "Yes":
+                    itemCorrect.setForeground(QColor("green"))
+                else:
+                    itemCorrect.setForeground(QColor("red"))
+                    itemPred.setForeground(QColor("red")) 
+                    
+                self.table.setItem(i, 0, itemIdx)
+                self.table.setItem(i, 1, itemPred)
+                self.table.setItem(i, 2, itemActual)
+                self.table.setItem(i, 3, itemCorrect)
+                
+        tableLayout.addWidget(self.table)
+        tabs.addTab(tableTab, "Test Data Predictions")
+        
+        layout.addWidget(tabs)
+        
+        closeBtn = QPushButton("Close")
+        closeBtn.clicked.connect(self.accept)
+        layout.addWidget(closeBtn)
