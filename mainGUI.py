@@ -126,3 +126,123 @@ class ResultsDialog(QDialog):
         closeBtn = QPushButton("Close")
         closeBtn.clicked.connect(self.accept)
         layout.addWidget(closeBtn)
+
+
+
+
+class HelpDialog(QDialog):
+    def __init__(self):
+        super().__init__()
+        self.setWindowTitle("Help")
+        self.resize(450, 350)
+        
+        layout = QVBoxLayout(self)
+        
+        helpText = QTextEdit()
+        helpText.setReadOnly(True)
+        
+        
+        helpText.setHtml("""
+            <h2 style='font-family: Arial;'>How to Use the neural network trainer</h2>
+            <p style='font-family: Arial;'>This tool trains a single layer neural network to classify handwritten digits.</p>
+            
+            <h3 style='font-family: Arial;'>Hyperparameters</h3>
+            <ul style='font-family: Arial;'>
+                <li><b>Learning Rate:</b> Controls how aggressively the model updates its weights. A smaller value, like 0.01, is safer and smoother, while a larger value, like 0.1, is faster but might cause the model to overshoot.</li>
+                <li><b>Iterations:</b> The maximum number of passes the model will make over the dataset during gradient descent.</li>
+            </ul>
+            
+            <h3 style='font-family: Arial;'>Data Requirements</h3>
+            <p style='font-family: Arial;'>Ensure the following files are in the same directory as this application:</p>
+            <ul style='font-family: Arial;'>
+                <li><code>optdigits_train.dat</code></li>
+                <li><code>optdigits_test.dat</code></li>
+            </ul>
+            
+            <p style='font-family: Arial;'><b>To begin:</b> Adjust your parameters and click <i>Train Perceptron</i>. Once training is complete, your fitting curves will open automatically.</p>
+        """)
+        layout.addWidget(helpText)
+        
+        closeBtn = QPushButton("Close Help")
+        closeBtn.clicked.connect(self.accept)
+        layout.addWidget(closeBtn)
+
+
+
+class MLExplorerGUI(QMainWindow):
+    def __init__(self):
+        super().__init__()
+        self.setWindowTitle("Neural Network Trainer")
+        self.resize(650, 500)
+        
+        centralWidget = QWidget()
+        self.setCentralWidget(centralWidget)
+        mainLayout = QVBoxLayout(centralWidget)
+        
+        
+        controlsLayout = QHBoxLayout()
+        
+        
+        self.lrLabel = QLabel("Learning Rate:")
+        self.lrInput = QLineEdit("0.1")
+        self.lrInput.setFixedWidth(60)
+        
+        
+        self.iterLabel = QLabel("Iterations:")
+        self.iterInput = QLineEdit("100")
+        self.iterInput.setFixedWidth(60)
+        
+        controlsLayout.addWidget(self.lrLabel)
+        controlsLayout.addWidget(self.lrInput)
+        controlsLayout.addWidget(self.iterLabel)
+        controlsLayout.addWidget(self.iterInput)
+        controlsLayout.addStretch()
+        
+        mainLayout.addLayout(controlsLayout)
+        
+        
+        self.trainBtn = QPushButton("Train Perceptron")
+        self.trainBtn.clicked.connect(self.startTraining)
+        mainLayout.addWidget(self.trainBtn)
+        
+        
+        self.console = QTextEdit()
+        self.console.setReadOnly(True)
+        self.console.setStyleSheet("background-color: #1e1e1e; color: #d4d4d4; font-family: Consolas, monospace;")
+        mainLayout.addWidget(self.console)
+        
+        
+        bottomLayout = QHBoxLayout()
+        self.helpBtn = QPushButton("Help")
+        self.helpBtn.clicked.connect(self.openHelp)
+        bottomLayout.addWidget(self.helpBtn)
+        bottomLayout.addStretch() 
+        
+        mainLayout.addLayout(bottomLayout)
+        
+        
+        self.updateConsole("Loading datasets... make sure 'optdigits_train.dat' and 'optdigits_test.dat' are in the directory.")
+        try:
+            self.xTrain, self.yTrain = loadData("optdigits_train.dat")
+            self.xTest, self.yTest = loadData("optdigits_test.dat")
+            self.updateConsole("Data loaded successfully! Ready to train.")
+        except Exception as e:
+            self.updateConsole(f"Error loading data: make sure the .dat files are present.")
+            self.trainBtn.setEnabled(False)
+
+    def startTraining(self):
+        try:
+            lr = float(self.lrInput.text())
+            iters = int(self.iterInput.text())
+        except ValueError:
+            QMessageBox.warning(self, "Input Error", "Please enter valid numbers for learning rate and iteration number.")
+            return
+
+        self.trainBtn.setEnabled(False) 
+        self.console.clear()
+        
+        self.worker = ModelTrainingWorker(self.xTrain, self.yTrain, self.xTest, self.yTest, lr, iters)
+        self.worker.logMsg.connect(self.updateConsole)
+        self.worker.errorMsg.connect(self.handleError)
+        self.worker.finished.connect(self.onTrainingComplete)
+        self.worker.start()
