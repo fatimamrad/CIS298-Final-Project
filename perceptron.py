@@ -26,3 +26,21 @@ class Perceptron:
         db = np.sum(dZ, axis = 0, keepdims = True) 
         
         return dW, db
+
+    def updateWeights(self, dW, db, learningRate):
+        self.W -= learningRate * dW 
+        self.b -= learningRate * db 
+
+
+    
+    def predict(self, X):
+        _, A = self.forward(X) 
+        return np.argmax(A, axis = 1)
+
+
+    
+    def evaluateError(self, X, yLabels):
+        predictions = self.predict(X) 
+        incorrect = np.sum(predictions != yLabels) 
+        return incorrect / len(yLabels)
+    
