@@ -246,3 +246,43 @@ class MLExplorerGUI(QMainWindow):
         self.worker.errorMsg.connect(self.handleError)
         self.worker.finished.connect(self.onTrainingComplete)
         self.worker.start()
+    def updateConsole(self, msg):
+        self.console.append(msg)
+        scrollbar = self.console.verticalScrollBar()
+        scrollbar.setValue(scrollbar.maximum())
+
+    def handleError(self, error):
+        self.updateConsole(f"ERROR: {error}")
+        self.trainBtn.setEnabled(True)
+
+    def onTrainingComplete(self, history):
+        self.updateConsole(f"Final Train Misclassification Error: {history['trainMisc'][-1]:.4f}")
+        if 'testMisc' in history and len(history['testMisc']) > 0:
+            self.updateConsole(f"Final Test Misclassification Error: {history['testMisc'][-1]:.4f}")
+        
+        self.updateConsole("\nGenerating fitting curves...")
+        try:
+            plotFittingCurves(history, "Perceptron")
+            self.updateConsole("Success: Fitting curves saved to the 'graphs' folder.")
+            
+            self.updateConsole("Opening graph results...")
+            self.graphWindow = ResultsDialog(history) 
+            self.graphWindow.exec()
+            
+        except Exception as e:
+            self.updateConsole(f"Could not display graphs: {e}")
+
+        self.trainBtn.setEnabled(True)
+
+    def openHelp(self):
+        self.helpWindow = HelpDialog()
+        self.helpWindow.exec()
+
+
+
+if __name__ == "__main__":
+    app = QApplication(sys.argv)
+    app.setStyle("Fusion") 
+    window = MLExplorerGUI()
+    window.show()
+    sys.exit(app.exec())
