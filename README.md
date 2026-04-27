@@ -23,6 +23,6 @@ Time spent each commit:
 
 Loren Danaoui - 25-30 hours.. The functions I did: plotFittingCurves, sigmoidDerivavtive, proxyError, initialWeights, updateConsole, handleError, onTrainingComplete, openHelp, .. Class: ResultsDialog 
 
-Marcus Gharbieh - 20-25 hours.. The functions I did: sigmoidDerivative, proxyError, initializeWeights, fit, .. Class: ModelTrainingWorker. 
+Marcus Gharbieh - 20-25 hours.. The functions I did: sigmoidDerivative, proxyError, initializeWeights, fit, .. Class: ModelTrainingWorker. I also tested and debugged the code to ensure we had a working final product.
 
 Fatima Mrad - 
