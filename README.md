@@ -25,4 +25,4 @@ Loren Danaoui - 25-30 hours.. The functions I did: plotFittingCurves, sigmoidDer
 
 Marcus Gharbieh - 20-25 hours.. The functions I did: sigmoidDerivative, proxyError, initializeWeights, fit, .. Class: ModelTrainingWorker. I also tested and debugged the code to ensure we had a working final product.
 
-Fatima Mrad - 
+Fatima Mrad - 20+ hours.. The functions I did: loadData, oneHotEncode, sigmoid, init, forward, backward, startTraining .. Classes: Perceptron, HelpDialog, MLExplorerGUI. 
